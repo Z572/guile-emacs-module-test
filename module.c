@@ -53,7 +53,9 @@ void define_elisp_function(emacs_env *env, ptrdiff_t min, ptrdiff_t max,
 }
 
 void* init_guile_procs(void* env) {
-  scm_c_define("emacs-env", scm_from_pointer(env, NULL));
+  /* SCM module=scm_c_resolve_module("emacs user"); */
+  /* scm_set_current_module(module); */
+  scm_c_define("%emacs-env-ptr", scm_from_pointer(env, NULL));
   return NULL;
 }
 int emacs_module_init(struct emacs_runtime *ert) {
