@@ -72,19 +72,6 @@ emacs_value guile_primitive_load(emacs_env *env, ptrdiff_t nargs, emacs_value *a
   return env->make_integer(env, 1);
 }
 
-emacs_value define_scm(emacs_env *env, ptrdiff_t nargs, emacs_value *args,
-                       void *data) {
-  ptrdiff_t strleng;
-  emacs_value lstring = args[0];
-  env->copy_string_contents(env, lstring, NULL, &strleng);
-  char *sdata = malloc(strleng);
-  env->copy_string_contents(env, lstring, sdata, &strleng);
-  char *bbb = scm_with_guile(eval, sdata);
-  if (bbb)
-    return env->make_string(env, bbb, strlen(bbb));
-  return env->make_integer(env, 1);
-}
-
 void define_elisp_function(emacs_env *env, ptrdiff_t min, ptrdiff_t max,
                            emacs_value (*fun)(emacs_env *env, ptrdiff_t nargs,
                                               emacs_value *args, void *data),
