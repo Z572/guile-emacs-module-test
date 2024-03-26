@@ -12,7 +12,23 @@ void* eval(void *n) {
   return scm_to_utf8_string(o);
 }
 
+char* estring_to_string(emacs_env *env,emacs_value lstring){
+    ptrdiff_t strleng;
+  env->copy_string_contents(env, lstring, NULL, &strleng);
+  char* sdata = malloc(strleng);
+  env->copy_string_contents(env, lstring, sdata, &strleng);
+  return sdata;
+}
+
 emacs_value call(emacs_env *env, ptrdiff_t nargs, emacs_value *args, void *data) {
+  emacs_value lstring = args[0];
+  char* bbb=scm_with_guile(eval,estring_to_string(env,lstring));
+  if (bbb)
+    return env->make_string(env,bbb , strlen(bbb));
+  return env->make_integer(env,1);
+}
+
+emacs_value define_scm(emacs_env *env, ptrdiff_t nargs, emacs_value *args, void *data) {
   ptrdiff_t strleng;
   emacs_value lstring = args[0];
   env->copy_string_contents(env, lstring, NULL, &strleng);
@@ -24,9 +40,12 @@ emacs_value call(emacs_env *env, ptrdiff_t nargs, emacs_value *args, void *data)
   return env->make_integer(env,1);
 }
 
-void define_elisp_function(emacs_env *env) {
-  emacs_value func = env->make_function (env, 1, 1, call, "", NULL);
-  emacs_value symbol = env->intern (env, "guile-eval-string");
+void define_elisp_function(emacs_env *env, ptrdiff_t min,ptrdiff_t max,emacs_value (*fun) (emacs_env *env,
+                                                     ptrdiff_t nargs,
+                                                     emacs_value* args,
+                                                                void *data),char* name) {
+  emacs_value func = env->make_function (env, min, max, fun, "", NULL);
+  emacs_value symbol = env->intern (env, name);
   emacs_value args[] = {symbol, func};
   env->funcall (env, env->intern (env, "defalias"), 2, args);
 }
@@ -34,7 +53,7 @@ void define_elisp_function(emacs_env *env) {
 int emacs_module_init (struct emacs_runtime *ert)
 {
   emacs_env *env = ert->get_environment(ert);
-  define_elisp_function(env);
+  define_elisp_function(env,1,1 ,call,"guile-eval-string");
   return 0;
 }
 
