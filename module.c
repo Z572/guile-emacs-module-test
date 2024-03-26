@@ -78,8 +78,6 @@ void define_elisp_function(emacs_env *env, ptrdiff_t min, ptrdiff_t max,
                            char *name) {
   emacs_value func = env->make_function(env, min, max, fun, "", NULL);
   emacs_value symbol = env->intern(env, name);
-  /* emacs_value args[] = {symbol, func}; */
-  /* env->funcall(env, env->intern(env, "defalias"), 2, args); */
   lisp_funcall(env,"defalias",symbol, func);
 }
 
@@ -87,23 +85,6 @@ SCM emacs_funcall(SCM env_ptr,SCM name,SCM arglength,SCM args){
   emacs_env *env=scm_to_pointer(env_ptr);
   ptrdiff_t leng=scm_to_ptrdiff_t(arglength);
   env->funcall(env, env->intern(env, scm_to_utf8_string(name)),0,NULL);
-  return SCM_UNSPECIFIED;
-};
-
-SCM emacs_message(SCM env_ptr){
-  emacs_env *env=scm_to_pointer(env_ptr);
-  /* char* str="hello"; */
-  /* emacs_value args[] = {env->make_string(env ,str,strlen(str))}; */
-  /* env->funcall(env, */
-  /*              env->intern(env, "message"), */
-  /*              1, */
-  /*              args);
-   */
-  lisp_funcall(env,
-             "kill-emacs",
-             /* lisp_string(env, "(1+ %d) is %d"), */
-               /* (lisp_integer(env, 1)), */
-             /* lisp_funcall(env, "1+", lisp_integer(env, 1)) */);
   return SCM_UNSPECIFIED;
 };
 
@@ -131,7 +112,6 @@ void* init_guile_procs(void* env) {
   /* scm_c_use_module("srfi srfi-9"); */
   scm_c_module_define(module, "%emacs-env-ptr", scm_from_pointer(env, NULL));
   scm_c_define_gsubr ("%emacs-funcall", 4, 0, 0, (scm_t_subr) emacs_funcall);;
-  scm_c_define_gsubr ("%emacs-message", 1, 0, 0, (scm_t_subr) emacs_message);;
   scm_c_define_gsubr ("%emacs-env-intern", 2, 0, 0, (scm_t_subr) emacs_env_intern);;
   scm_c_define_gsubr ("%emacs-integer", 2, 0, 0, (scm_t_subr) emacs_integer);;
   scm_c_define_gsubr ("%emacs-eq", 3, 0, 0, (scm_t_subr) emacs_eq);;
