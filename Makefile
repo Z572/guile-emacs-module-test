@@ -7,4 +7,4 @@ module.so: module.c
 
 run: module.so
 	emacs --batch --eval "(progn (module-load (expand-file-name \"module.so\"))\
-	(guile-eval-string \"(pk \\\"hello!\\\")\"))"
+	(guile-eval-string \"(primitive-load \\\"init.scm\\\")\"))"
