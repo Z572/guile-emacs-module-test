@@ -52,8 +52,13 @@ void define_elisp_function(emacs_env *env, ptrdiff_t min, ptrdiff_t max,
   env->funcall(env, env->intern(env, "defalias"), 2, args);
 }
 
+void* init_guile_procs(void* env) {
+  scm_c_define("emacs-env", scm_from_pointer(env, NULL));
+  return NULL;
+}
 int emacs_module_init(struct emacs_runtime *ert) {
   emacs_env *env = ert->get_environment(ert);
   define_elisp_function(env, 1, 1, call, "guile-eval-string");
+  scm_with_guile(init_guile_procs,env);
   return 0;
 }
