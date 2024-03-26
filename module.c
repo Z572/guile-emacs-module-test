@@ -29,6 +29,18 @@ emacs_value call(emacs_env *env, ptrdiff_t nargs, emacs_value *args,
   return env->make_integer(env, 1);
 }
 
+void *pload(void *n) {
+  scm_c_primitive_load(n);
+  return SCM_UNSPECIFIED;
+}
+
+emacs_value guile_primitive_load(emacs_env *env, ptrdiff_t nargs, emacs_value *args,
+                 void *data) {
+  emacs_value lstring = args[0];
+  scm_with_guile(pload, estring_to_string(env, lstring));
+  return env->make_integer(env, 1);
+}
+
 emacs_value define_scm(emacs_env *env, ptrdiff_t nargs, emacs_value *args,
                        void *data) {
   ptrdiff_t strleng;
@@ -52,15 +64,29 @@ void define_elisp_function(emacs_env *env, ptrdiff_t min, ptrdiff_t max,
   env->funcall(env, env->intern(env, "defalias"), 2, args);
 }
 
+SCM emacs_funcall(SCM env_ptr,SCM name,SCM arglength,SCM args){
+  emacs_env *env=scm_to_pointer(env_ptr);
+  ptrdiff_t leng=scm_to_ptrdiff_t(arglength);
+  emacs_value eargs[] = {};
+  env->funcall(env, env->intern(env, scm_to_utf8_string(name)),0,eargs);
+  return SCM_UNSPECIFIED;
+};
+
 void* init_guile_procs(void* env) {
-  /* SCM module=scm_c_resolve_module("emacs user"); */
-  /* scm_set_current_module(module); */
-  scm_c_define("%emacs-env-ptr", scm_from_pointer(env, NULL));
+  SCM module=scm_c_resolve_module("emacs");
+  scm_set_current_module(module);
+  scm_c_use_module("guile");
+  /* scm_c_use_module("srfi srfi-9"); */
+  scm_c_module_define(module, "%emacs-env-ptr", scm_from_pointer(env, NULL));
+  scm_c_define_gsubr ("%emacs-funcall", 4, 0, 0, (scm_t_subr) emacs_funcall);;
+  scm_c_primitive_load("boot.scm");
   return NULL;
 }
+
 int emacs_module_init(struct emacs_runtime *ert) {
   emacs_env *env = ert->get_environment(ert);
   define_elisp_function(env, 1, 1, call, "guile-eval-string");
+  define_elisp_function(env, 1, 1, guile_primitive_load, "guile-primitive-load");
   scm_with_guile(init_guile_procs,env);
   return 0;
 }

@@ -6,5 +6,4 @@ module.so: module.c
 	${CC} -shared -fpic $< ${LIBS} ${CFLAGS} -o $@
 
 run: module.so
-	emacs --batch --eval "(progn (module-load (expand-file-name \"module.so\"))\
-	(guile-eval-string \"(primitive-load \\\"init.scm\\\")\"))"
+	emacs --eval "(progn (module-load (expand-file-name \"module.so\")))"
