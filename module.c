@@ -75,8 +75,9 @@ emacs_value guile_primitive_load(emacs_env *env, ptrdiff_t nargs, emacs_value *a
 void define_elisp_function(emacs_env *env, ptrdiff_t min, ptrdiff_t max,
                            emacs_value (*fun)(emacs_env *env, ptrdiff_t nargs,
                                               emacs_value *args, void *data),
-                           char *name) {
-  emacs_value func = env->make_function(env, min, max, fun, "", NULL);
+                           char *name,
+                           void *data) {
+  emacs_value func = env->make_function(env, min, max, fun, "", data);
   emacs_value symbol = env->intern(env, name);
   lisp_funcall(env,"defalias",symbol, func);
 }
@@ -121,8 +122,8 @@ void* init_guile_procs(void* env) {
 
 int emacs_module_init(struct emacs_runtime *ert) {
   emacs_env *env = ert->get_environment(ert);
-  define_elisp_function(env, 1, 1, call, "guile-eval-string");
-  define_elisp_function(env, 1, 1, guile_primitive_load, "guile-primitive-load");
+  define_elisp_function(env, 1, 1, call, "guile-eval-string",NULL);
+  define_elisp_function(env, 1, 1, guile_primitive_load, "guile-primitive-load",NULL);
   scm_with_guile(init_guile_procs,env);
   return 0;
 }
